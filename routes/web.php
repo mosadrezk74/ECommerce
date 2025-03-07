@@ -1,23 +1,33 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\CouponController;
-use App\Http\Controllers\Admin\SizeController;
-use App\Http\Controllers\Admin\ColorController;
-use App\Http\Controllers\Admin\BrandController;
-use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\TaxController;
+use App\Http\Controllers\Admin\SizeController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\ColorController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Front\FrontController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\HomeBannerController;
-use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\Front\FrontController;
+// use App\Http\Controllers\LocaleSessionRedirectController;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
-Auth::routes();
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
+Route::group(
+    [
+        'prefix' => LaravelLocalization::setLocale(),
+        // 'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath']
+    ],
+    function () {
+        Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 Route::get('/send',[FrontController::class,'send']);
@@ -181,8 +191,9 @@ Route::group(['middleware'=>'user_auth'],function(){
 
 Route::get('/order',[FrontController::class,'order']);
 Route::get('/order_detail/{id}',[FrontController::class,'order_detail']);
+});
+
+
 
 });
-require __DIR__.'/auth.php';
-
 

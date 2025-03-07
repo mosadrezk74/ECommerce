@@ -1,16 +1,18 @@
 <?php
 
 namespace App\Http\Controllers\Front;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\ProductStoreReq;
+use App\Models\Product;
+use App\Models\Category;
+
+// use App\Models\Brand;
 use App\Models\Admin\Brand;
-use App\Models\Admin\Category;
-use App\Models\Admin\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Crypt;
+use App\Http\Requests\ProductStoreReq;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -31,12 +33,12 @@ class FrontController extends Controller
     {
         $products=Product::with('category')->paginate(10);
         $categories = Category::all()->where(['status' => 1]);
-        $brands= Brand::all()->where(['status' => 1]);
+        // $brands= Brand::all()->where(['status' => 1]);
         $latest_products = Product::with('category')->latest()->limit(9)->get();
 
         return view('Website.index'
         ,compact('products' ,'categories'
-                ,'brands'
+
                 ,'latest_products'
 
             )
@@ -48,29 +50,29 @@ class FrontController extends Controller
 
     public function show_product($id){
 
-        $product = Product::with('category' )->paginate(10)->find($id);
+        $product = Product::with('category' )->paginate(10)->FindOrFail($id);
         $categories = Category::all();
         return view('Website.details' ,compact('product' , 'categories'));
     }
 
 
 
-    public function send(){
-        $basic  = new \Vonage\Client\Credentials\Basic("bd9ac08c", "JuLAmGim7Ak9rZbA");
-        $client = new \Vonage\Client($basic);
+    // public function send(){
+    //     $basic  = new \Vonage\Client\Credentials\Basic("bd9ac08c", "JuLAmGim7Ak9rZbA");
+    //     $client = new \Vonage\Client($basic);
 
-        $response = $client->sms()->send(
-            new \Vonage\SMS\Message\SMS("201001806482", 'Api', 'alsalam alekom w rahmat allah w barakato ,, a7la mesa 3leek ya dawoly')
-        );
+    //     $response = $client->sms()->send(
+    //         new \Vonage\SMS\Message\SMS("201001806482", 'Api', 'alsalam alekom w rahmat allah w barakato ,, a7la mesa 3leek ya dawoly')
+    //     );
 
-        $message = $response->current();
+    //     $message = $response->current();
 
-        if ($message->getStatus() == 0) {
-            echo "The message was sent successfully\n";
-        } else {
-            echo "The message failed with status: " . $message->getStatus() . "\n";
-        }
-    }
+    //     if ($message->getStatus() == 0) {
+    //         echo "The message was sent successfully\n";
+    //     } else {
+    //         echo "The message failed with status: " . $message->getStatus() . "\n";
+    //     }
+    // }
 
 
 
@@ -221,7 +223,7 @@ class FrontController extends Controller
  public function Checkout(Request $request)
  {
 
-    $result['cart_data']=getAddToCartTotalItem();
+    // $result['cart_data']=getAddToCartTotalItem();
 
     if(isset($result['cart_data'][0])){
 
@@ -257,7 +259,7 @@ class FrontController extends Controller
 
 public function apply_coupon_code(Request $request)
     {
-        $arr=apply_coupon_code($request->coupon_code);
+        // $arr=apply_coupon_code($request->coupon_code);
         $arr=json_decode($arr,true);
 
         return response()->json(['status'=>$arr['status'],'msg'=>$arr['msg'],'totalPrice'=>$arr['totalPrice']]);
@@ -269,7 +271,7 @@ public function apply_coupon_code(Request $request)
         $result=DB::table('coupons')
         ->where(['code'=>$request->coupon_code])
         ->get();
-        $getAddToCartTotalItem=getAddToCartTotalItem();
+        // $getAddToCartTotalItem=getAddToCartTotalItem();
         $totalPrice=0;
         foreach($getAddToCartTotalItem as $list){
             $totalPrice=$totalPrice+($list->qty*$list->price);
@@ -286,7 +288,7 @@ public function apply_coupon_code(Request $request)
         if($request->session()->has('FRONT_USER_LOGIN')){
             $coupon_value=0;
             if($request->coupon_code!=''){
-                $arr=apply_coupon_code($request->coupon_code);
+                // $arr=apply_coupon_code($request->coupon_code);
                 $arr=json_decode($arr,true);
                 if($arr['status']=='success'){
                     $coupon_value=$arr['coupon_code_value'];
@@ -298,7 +300,7 @@ public function apply_coupon_code(Request $request)
 
             $uid=$request->session()->get('FRONT_USER_ID');
             $totalPrice=0;
-            $getAddToCartTotalItem=getAddToCartTotalItem();
+            // $getAddToCartTotalItem=getAddToCartTotalItem();
             foreach($getAddToCartTotalItem as $list){
                 $totalPrice=$totalPrice+($list->qty*$list->price);
             }
