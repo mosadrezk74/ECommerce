@@ -7,10 +7,27 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ship extends Model
 {
-    protected $table='shipping_address';
-    protected $fillable=[
-        'name',
-        'price'
+    protected $table = 'shipping';
+
+    protected $fillable = [
+        'ShippingMethod',
+        'OrderID',
+        'UserID',
+        'TrackingNumber',
+        'ShippingCost',
+        'ShippedAt',
+        'DeliveredAt',
+        'Status',
+        'City'
+
     ];
+
+    protected $primaryKey = 'ShippingID';
+    public function city(){
+        return $this->belongsTo(Provinve::class);
+    }
+
+    public $timestamps = false;
+
     use HasFactory;
 }

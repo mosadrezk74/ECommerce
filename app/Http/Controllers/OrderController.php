@@ -14,7 +14,6 @@ class OrderController extends Controller
     public function checkout(Request $request) {
         DB::beginTransaction();
         try {
-            // Validate cart items
             $user = auth()->user();
             $cartItems = Cart::with('product')
                 ->where('UserID', $user->UserID)
@@ -24,7 +23,6 @@ class OrderController extends Controller
                 return response()->json(['message' => 'Cart is empty'], 400);
             }
 
-            // Check stock and calculate total
             $totalAmount = 0;
             foreach ($cartItems as $item) {
                 if ($item->product->StockQuantity < $item->Quantity) {
@@ -33,7 +31,6 @@ class OrderController extends Controller
                 $totalAmount += $item->product->Price * $item->Quantity;
             }
 
-            // Create order
             $order = Order::create([
                 'UserID' => $user->UserID,
                 'OrderDate' => now(),
@@ -43,7 +40,6 @@ class OrderController extends Controller
                 'PaymentMethod' => $request->PaymentMethod
             ]);
 
-            // Create order details and update product stock
             foreach ($cartItems as $item) {
                 OrderDetail::create([
                     'OrderID' => $order->OrderID,
@@ -52,12 +48,10 @@ class OrderController extends Controller
                     'Price' => $item->product->Price
                 ]);
 
-                // Decrease stock
                 Product::where('ProductID', $item->ProductID)
                     ->decrement('StockQuantity', $item->Quantity);
             }
 
-            // Clear cart
             Cart::where('UserID', $user->UserID)->delete();
 
             DB::commit();
@@ -70,15 +64,13 @@ class OrderController extends Controller
     }
 
     public function index() {
-        $orders = Order::with('orderDetails.product')
-            ->where('UserID', auth()->id())
+        $orders = Order::where('UserID', auth()->id())
             ->get();
         return response()->json($orders);
     }
 
     public function show($id) {
-        $order = Order::with('orderDetails.product')
-            ->where('UserID', auth()->id())
+        $order = Order::where('UserID', auth()->id())
             ->findOrFail($id);
         return response()->json($order);
     }

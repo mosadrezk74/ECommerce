@@ -12,13 +12,15 @@ class CityController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'price' => ['required', 'integer'],
+            'City' => ['required', 'string', 'max:255'],
+            'Street' => ['required', 'integer'],
+            'ShipID' => ['required', 'integer'],
         ]);
 
         $city = Ship::create([
-            'name' => $request->name,
-            'price' => $request->price,
+            'City' => $request->City,
+            'Street' => $request->Street,
+            'ShipID' => $request->ShipID,
         ]);
 
         return response()->json([

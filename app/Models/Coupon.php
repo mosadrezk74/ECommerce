@@ -8,12 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 class Coupon extends Model
 {
     protected $table='coupons';
-    protected $fillable=[
-        'merchant_account_id',
-        'name',
-        'slug',
-        'discount_amount',
-        'expired',
+    protected $primaryKey = 'CouponID';
+    protected $fillable = [
+        'Code', 'DiscountType', 'DiscountValue',
+        'ValidFrom', 'ValidTo', 'UsageLimit',
+        'UsedCount', 'MinOrderAmount', 'IsActive'
     ];
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'coupon_usages')
+                    ->withPivot('OrderID');
+    }
     use HasFactory;
 }

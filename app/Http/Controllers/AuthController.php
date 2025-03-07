@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ship;
 use App\Models\User;
+use App\Models\Address;
+use App\Models\UserShip;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\ValidationException;
@@ -12,14 +16,18 @@ class AuthController extends Controller
 {
 
     public function register(Request $request)
-    {
-        //vcr
+{
+    DB::beginTransaction();
+    try {
+
         $request->validate([
             'FirstName' => 'required|string|max:50',
             'LastName' => 'required|string|max:50',
             'Email' => 'required|string|email|max:100|unique:users',
             'PasswordHash' => 'required|string|min:8',
-            'PhoneNumber' => 'sometimes|string|max:15'
+            'PhoneNumber' => 'sometimes|string|max:15',
+            'Address' => 'sometimes|string|max:255',
+
         ]);
 
         $user = User::create([
@@ -27,16 +35,45 @@ class AuthController extends Controller
             'LastName' => $request->LastName,
             'Email' => $request->Email,
             'PasswordHash' => Hash::make($request->PasswordHash),
-            'PhoneNumber' => $request->PhoneNumber
+            'PhoneNumber' => $request->PhoneNumber,
+            'Address'=>$request->Address,
         ]);
 
+
         event(new Registered($user));
+        DB::commit();
+
+        $UserShip=UserShip::create([
+            'UserID'=>$user->UserID,
+            'CityID'=>$request->CityID,
+        ]);
+
+
+
+
 
         return response()->json([
             'message' => 'Registration successful! Please check your email for verification.',
-            'token' => $user->createToken('auth_token')->plainTextToken
-        ]);
+            'token' => $user->createToken('auth_token')->plainTextToken,
+            'user' => $user,
+            'UserShip'=>$UserShip
+
+        ], 201);
+    } catch (ValidationException $e) {
+        DB::rollback();
+        return response()->json([
+            'message' => 'Validation error',
+            'errors' => $e->errors(),
+        ], 400);
+    } catch (\Exception $e) {
+        DB::rollback();
+        return response()->json([
+            'message' => 'Registration failed!',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
 
 // app/Http/Controllers/AuthController.php
 public function verifyEmail(Request $request, $id, $hash)

@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
-use App\Models\Product;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Order;
+use App\Models\OrderDetail;
+use App\Models\Product;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
  use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Validator;
 
 class TestController extends Controller
 {
@@ -108,6 +111,50 @@ class TestController extends Controller
             ]);
         }
 
+    }
+
+
+    public function checkout(Request $request){
+        DB::beginTransaction();
+        try{
+            $C_User=Auth::user();
+            $CartItem=Cart::with('product')->where('UserID',$C_User->UserID)->get();
+            if(!$CartItem){
+                return response()->json('notFound');
+            }
+
+            $totalPrice=0;
+            foreach($CartItem as $item){
+                if($item->product->StockQuantity < $request->item){
+                    return response()->json('لا يوجد كميه كافيه');
+                }
+                $totalPrice+=$item->Quantity*$item->product->Price;
+            }
+
+            $order=Order::create([
+                'UserID'=>$C_User->UserID,
+                'Data Created'=>now(),
+                'Total Price'=>$totalPrice,
+                'ShippingAddressID' => $request->ShippingAddressID,
+                'PaymentMethod' => $request->PaymentMethod
+            ]);
+            foreach($CartItem as $item){
+                OrderDetail::create([
+                    'OrderID' => $order->OrderID,
+                    'ProductID' => $item->ProductID,
+                    'Quantity' => $item->Quantity,
+                    'Price' => $item->product->Price
+                ]);
+                Product::where('ProductID',$item->ProductID)
+                ->decrement('StockQuantity',$item->Quantity);
+            }
+            Cart::where('UserID',$C_User->UserID)->delete();
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
 
     }
 

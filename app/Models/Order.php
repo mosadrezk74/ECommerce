@@ -14,13 +14,13 @@ class Order extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'UserID', 'OrderDate', 'TotalAmount', 'Status',
-        'ShippingAddressID', 'PaymentMethod'
+        'UserID', 'OrderDate', 'TotalAmount', 'Status', 'PaymentMethod'
     ];
 
     public function user() {
         return $this->belongsTo(User::class, 'UserID');
     }
+
 
     public function orderDetails() {
         return $this->hasMany(OrderDetail::class, 'OrderID');

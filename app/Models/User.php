@@ -23,7 +23,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'Email',
         'PasswordHash',
         'PhoneNumber',
-        'IsActive'
+        'IsActive',
+        'Address'
     ];
 
     protected $hidden = [
@@ -51,5 +52,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new \App\Notifications\VerifyEmailNotification);
     }
+    public function Ship(){
+        return $this->hasMany(Address::class, 'UserID');
+    }
 }
-?>
